@@ -1,5 +1,7 @@
-package tool;
+package cache;
 
+
+import lombok.extern.log4j.Log4j;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -10,17 +12,25 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import java.net.URI;
 
-
-public class WordCount2 extends Configuration implements Tool {
+@Log4j
+public class WordCount3 extends Configuration implements Tool {
 
     public static void main(String[] args) throws Exception{
 
-        if (args.length != 2) {
+        if (args.length != 1) {
             System.out.printf("분석할 폴더(파일) 및 분석 결과가 저장될 폴더를 입력해야 합니다.");
             System.exit(-1);
         }
-        int exitCode = ToolRunner.run(new WordCount2(), args);
+
+        long startTime = System.nanoTime();
+
+        int exitCode = ToolRunner.run(new WordCount3(), args);
+
+        long endTime = System.nanoTime();
+
+        log.info("Cache Time : " + (endTime - startTime) + "ns");
 
         System.exit(exitCode);
 
@@ -29,7 +39,7 @@ public class WordCount2 extends Configuration implements Tool {
     @Override
     public void setConf(Configuration configuration) {
 
-        configuration.set("AppName", "ToolRunner Test");
+        configuration.set("AppName", "Cache Test");
 
     }
     @Override
@@ -43,6 +53,8 @@ public class WordCount2 extends Configuration implements Tool {
     @Override
     public int run(String[] args) throws Exception {
 
+        String analysisFile = "/comedies";
+
         Configuration conf = this.getConf();
         String appName = conf.get("AppName");
 
@@ -50,17 +62,28 @@ public class WordCount2 extends Configuration implements Tool {
 
         Job job = Job.getInstance(conf);
 
-        job.setJarByClass(WordCount2.class);
+        job.setJarByClass(WordCount3.class);
 
         job.setJobName(appName);
 
-        FileInputFormat.setInputPaths(job, new Path(args[0]));
+        job.addCacheFile(new Path(analysisFile).toUri());
 
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        URI[] cacheFiles = job.getCacheFiles();
 
-        job.setMapperClass(WordCount2Mapper.class);
+        for (URI cacheFile : cacheFiles) {
+            Path uploadFile = new Path(cacheFile.getPath());
 
-        job.setReducerClass(WordCount2Reducer.class);
+            log.info("Uploaded CacheFile : " +uploadFile);
+        }
+
+
+        FileInputFormat.setInputPaths(job, analysisFile);
+
+        FileOutputFormat.setOutputPath(job, new Path(args[0]));
+
+        job.setMapperClass(WordCount3Mapper.class);
+
+        job.setReducerClass(WordCount3Reducer.class);
 
         job.setOutputKeyClass(Text.class);
 
