@@ -8,26 +8,26 @@ import java.util.Map;
 
 public class MonthLog2Partitioner extends Partitioner<Text, Text> {
 
-    Map<String, Integer> month = new HashMap<>();
+    Map<String, Integer> months = new HashMap<>();
 
     public MonthLog2Partitioner() {
-        this.month.put("Jan",0);
-        this.month.put("Feb",1);
-        this.month.put("Mar",2);
-        this.month.put("Apr",3);
-        this.month.put("May",4);
-        this.month.put("Jun",5);
-        this.month.put("Jul",6);
-        this.month.put("Aug",7);
-        this.month.put("Sep",8);
-        this.month.put("Oct",9);
-        this.month.put("Nov",10);
-        this.month.put("Dec",11);
+        this.months.put("Jan",0);
+        this.months.put("Feb",1);
+        this.months.put("Mar",2);
+        this.months.put("Apr",3);
+        this.months.put("May",4);
+        this.months.put("Jun",5);
+        this.months.put("Jul",6);
+        this.months.put("Aug",7);
+        this.months.put("Sep",8);
+        this.months.put("Oct",9);
+        this.months.put("Nov",10);
+        this.months.put("Dec",11);
     }
 
     @Override
     public int getPartition(Text key, Text value, int numReduceTasks) {
 
-        return month.get(key.toString());
+        return months.get(key.toString());
     }
 }
